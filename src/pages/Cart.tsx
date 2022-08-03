@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy } from "react";
 
 import Grid from "@mui/material/Grid";
 
@@ -6,9 +6,6 @@ import Stepper from "@mui/material/Stepper";
 import Step from "@mui/material/Step";
 import StepLabel from "@mui/material/StepLabel";
 
-import CartEmpty from "../components/CartEmpty";
-import CartList from "../components/CartList";
-import Payment from "../components/Payment";
 import { useCart } from "../hooks/cart";
 
 enum StepsEnum {
@@ -20,6 +17,7 @@ enum StepsEnum {
 function Cart() {
   const { products } = useCart();
   const [step, setStep] = useState(StepsEnum.EMPTY);
+  const [stepComponent, setStepComponent] = useState(<></>);
 
   useEffect(() => {
     const currentStep = !!products.length
@@ -27,6 +25,24 @@ function Cart() {
       : StepsEnum.EMPTY;
     setStep(currentStep);
   }, [products]);
+
+  useEffect(() => {
+    const viewsByStep = {
+      [StepsEnum.EMPTY]: "CartEmpty",
+      [StepsEnum.CONFIRMATION]: "CartList",
+      [StepsEnum.PAYMENT]: "Payment",
+    };
+    const propsByStep = {
+      [StepsEnum.EMPTY]: {},
+      [StepsEnum.CONFIRMATION]: {
+        handleConfirm: () => setStep(StepsEnum.PAYMENT),
+      },
+      [StepsEnum.PAYMENT]: {},
+    };
+
+    const View = lazy(() => import(`../components/${viewsByStep[step]}`));
+    setStepComponent(<View {...propsByStep[step]} />);
+  }, [step]);
 
   return (
     <Grid container spacing={1} flexDirection="column">
@@ -40,11 +56,7 @@ function Cart() {
           </Step>
         </Stepper>
       </Grid>
-      {step === StepsEnum.EMPTY && <CartEmpty />}
-      {step === StepsEnum.CONFIRMATION && (
-        <CartList handleConfirm={() => setStep(StepsEnum.PAYMENT)} />
-      )}
-      {step === StepsEnum.PAYMENT && <Payment />}
+      {stepComponent}
     </Grid>
   );
 }
