@@ -1,3 +1,5 @@
+import { lazy, Suspense } from "react";
+
 import { Routes, Route } from "react-router-dom";
 import {
   BottomNavigation,
@@ -8,24 +10,27 @@ import {
 import FastfoodIcon from "@mui/icons-material/Fastfood";
 import ShoppingBasketIcon from "@mui/icons-material/ShoppingBasket";
 import { Link } from "react-router-dom";
-import Home from "./pages/Home";
-import Cart from "./pages/Cart";
-import Product from "./pages/Product";
 import { CartProvider } from "./hooks/cart";
 
 import "./App.css";
+
+const Home = lazy(() => import("./pages/Home"));
+const Cart = lazy(() => import("./pages/Cart"));
+const Product = lazy(() => import("./pages/Product"));
 
 function App() {
   return (
     <CartProvider>
       <Box sx={{ pb: 8, pt: 1, pl: 2, pr: 2 }}>
-        <Routes>
-          <Route index element={<Home />} />
-          <Route path="/pedido" element={<Cart />} />
-          <Route path="comidinha">
-            <Route path=":id" element={<Product />} />
-          </Route>
-        </Routes>
+        <Suspense fallback={<div>Carregando...</div>}>
+          <Routes>
+            <Route index element={<Home />} />
+            <Route path="/pedido" element={<Cart />} />
+            <Route path="comidinha">
+              <Route path=":id" element={<Product />} />
+            </Route>
+          </Routes>
+        </Suspense>
 
         <Paper
           sx={{ position: "fixed", bottom: 0, left: 0, right: 0 }}
