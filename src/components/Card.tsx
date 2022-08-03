@@ -1,3 +1,4 @@
+import { useState, useRef, useEffect } from "react";
 import MaterialCard from "@mui/material/Card";
 import CardActionArea from "@mui/material/CardActionArea";
 import Grid from "@mui/material/Grid";
@@ -13,6 +14,23 @@ type Props = {
 };
 
 function Card({ name, price, thumb, href }: Props) {
+  const [displayThumb, setDisplayThumb] = useState("");
+  const thumbRef = useRef<HTMLImageElement | null>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver((entries) => {
+      const [entry] = entries;
+
+      if (entry.isIntersecting) setDisplayThumb(thumb);
+    });
+    const observed = thumbRef.current;
+    if (observed) observer.observe(observed);
+
+    return () => {
+      if (observed) observer.unobserve(observed);
+    };
+  }, [thumbRef, thumb]);
+
   return (
     <Link to={href} style={{ textDecoration: "none" }}>
       <MaterialCard>
@@ -26,9 +44,10 @@ function Card({ name, price, thumb, href }: Props) {
               <img
                 width={72}
                 height={72}
-                src={thumb}
+                src={displayThumb}
                 alt=""
                 style={{ borderRadius: 8, objectFit: "cover" }}
+                ref={thumbRef}
               />
             </Grid>
           </Grid>
