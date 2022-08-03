@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useTransition } from "react";
 
 import Stack from "@mui/material/Stack";
 import SearchIcon from "@mui/icons-material/Search";
@@ -17,10 +17,11 @@ type Props = {
 function ProductList({ list }: Props) {
   const [filterString, setFilterString] = useState("");
   const [filteredList, setFilteredList] = useState<ProductType[]>(list);
+  const [isPending, startTransition] = useTransition();
 
   function handleInputChange(string: string) {
     setFilterString(string);
-    setFilteredList(getFilteredList(string));
+    startTransition(() => setFilteredList(getFilteredList(string)));
   }
 
   function getFilteredList(string: string) {
@@ -47,17 +48,21 @@ function ProductList({ list }: Props) {
           }
         />
       </FormControl>
-      <Stack spacing={1} pt={2}>
-        {filteredList?.map((item) => (
-          <Card
-            key={item.id}
-            name={item.name}
-            price={item.price}
-            thumb={item.thumb}
-            href={`/comidinha/${item.id}`}
-          />
-        ))}
-      </Stack>
+
+      {isPending && <div>Carregando...</div>}
+      {!isPending && (
+        <Stack spacing={1} pt={2}>
+          {filteredList?.map((item) => (
+            <Card
+              key={item.id}
+              name={item.name}
+              price={item.price}
+              thumb={item.thumb}
+              href={`/comidinha/${item.id}`}
+            />
+          ))}
+        </Stack>
+      )}
     </>
   );
 }
